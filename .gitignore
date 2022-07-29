@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+
+
+out/
+.vs/
+examples/face205_ply.zip
