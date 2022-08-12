@@ -58,8 +58,9 @@ set(cpp_files src/splocs.cpp)
 set(EXAMPLE_PATH "${CMAKE_SOURCE_DIR}/examples")
 
 add_compile_definitions(
-	-DEXAMPLE_PATH="${EXAMPLE_PATH}/"
-	face205="${EXAMPLE_PATH}/face205_ply/faceplys/"
+	EXAMPLE_PATH="${EXAMPLE_PATH}/"
+	face205="${EXAMPLE_PATH}/face-poses/"
+	navitan="${EXAMPLE_PATH}/lowpoly/cat/animation/"
 )
 
 add_library(splocs ${cpp_files} "src/splocs.h" "src/splocs.cpp" "src/geometry.h")
