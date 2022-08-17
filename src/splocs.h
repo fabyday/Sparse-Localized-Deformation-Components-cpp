@@ -8,6 +8,8 @@
 #include <igl/heat_geodesics.h>
 
 
+
+
 typedef double real_type;
 
 typedef Eigen::Matrix<real_type, -1, -1> MatrixXR;
@@ -31,12 +33,13 @@ public :
 	std::unique_ptr<Mesh> meanshape_mesh_;
 	std::vector<Mesh> meshes_;
 
-	real_type d_min_, d_max_;
+	real_type d_min_, d_max_, sparsity_lambda_, rho_;
+
 
 	bool is_compiled_;
 	int component_num_;// component K
-	int num_opt_;
-
+	int num_opt_ = 10;
+	int num_admm_iterations_;
 	real_type scale_factor_;
 	SplocsSolver();
 
@@ -60,13 +63,16 @@ private:
 
 
 	struct igl::HeatGeodesicsData<real_type> data_;
-	void get_local_support(const int idx, MatrixXR& result);
+	void get_local_support(const int idx, MatrixXR& result, real_type min, real_type max);
 	void precompute_local_support(const Mesh& t);
 
 public:
 
-	void solve(int component_num, real_type d_min, real_type d_max);
-	void solve(int component_num);
+	void solve(	int component_num = 50, int num_iter_max = 10, int num_admm_iterations = 10,
+				real_type d_min = 0.1, real_type d_max = 0.7, 
+				real_type sparsity_lambda = 2.0, real_type rho_ = 10.0);
+
+	//void solve(int component_num);
 
 	void phase1(MatrixXR& C, MatrixXR& W);
 
