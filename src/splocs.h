@@ -9,6 +9,7 @@
 
 
 
+#define F_EPS 10e-6
 
 typedef double real_type;
 
@@ -65,7 +66,8 @@ private:
 	struct igl::HeatGeodesicsData<real_type> data_;
 	void get_local_support(const int idx, MatrixXR& result, real_type min, real_type max);
 	void precompute_local_support(const Mesh& t);
-
+	void scale_meshes();
+	void find_rbm_procrustes();
 public:
 
 	void solve(	int component_num = 50, int num_iter_max = 10, int num_admm_iterations = 10,

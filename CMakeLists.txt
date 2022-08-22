@@ -63,7 +63,7 @@ add_compile_definitions(
 	navitan="${EXAMPLE_PATH}/lowpoly/cat/animation/"
 )
 
-add_library(splocs ${cpp_files} "src/splocs.h" "src/splocs.cpp" "src/geometry.h")
+add_library(splocs ${cpp_files} "src/splocs.h" "src/splocs.cpp")
 target_include_directories(splocs PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(splocs igl::core igl::opengl_glfw igl::opengl_glfw_imgui)
 

@@ -10,14 +10,15 @@ int main() {
 
 
 	slvr.add_triangle_meshes(std::vector<std::string> { 
-		//face205"face-reference.obj", 
-		face205"face-02-cry.obj" ,
-		face205"face-03-fury.obj" ,
-		face205"face-05-laugh.obj" ,
-		face205"face-06-rage.obj" ,
-		face205"face-07-sad.obj" ,
-		face205"face-08-smile.obj" ,
-		face205"face-09-surprise.obj" ,
+		face205"face-reference.ply", 
+		face205"face-01-anger.ply" ,
+		face205"face-02-cry.ply" ,
+		face205"face-03-fury.ply" ,
+		face205"face-05-laugh.ply" ,
+		face205"face-06-rage.ply" ,
+		face205"face-07-sad.ply" ,
+		face205"face-08-smile.ply" ,
+		face205"face-09-surprise.ply" ,
 		});
 
 	slvr.solve(50);
