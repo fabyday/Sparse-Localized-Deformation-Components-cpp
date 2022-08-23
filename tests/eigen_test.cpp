@@ -50,9 +50,37 @@ int main() {
 	std::cout << Eigen::Map<ROWMAT>(sx.data(), 2, 3) << std::endl;
 	std::cout << Eigen::Map<ROWMAT>(sx.transpose().data(), 2, 3) << std::endl;
 
-
-
-
+	typedef Eigen::MatrixXd MatrixXR;
+	typedef Eigen::VectorXd VectorXR;
+	MatrixXR test(4, 15);
+	test = VectorXR::LinSpaced(15, 0, 14).transpose().replicate(4, 1);
+	std::cout << test << std::endl;
+	/*Eigen::Map<MatrixXR, 0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> >
+		svd_data2(test.data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data3(test.data() + 4, 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data4(test.data() + 4 * 2, 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data5(test.data() + 4 * 3, 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data6(test.data() + 4 * 4, 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data7(test.data() + 4 * 5, 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0));
+	std::cout << svd_data2 << std::endl;
+	std::cout << svd_data3 << std::endl;
+	std::cout << svd_data4 << std::endl;
+	std::cout << svd_data5 << std::endl;
+	std::cout << svd_data6 << std::endl;
+	std::cout << svd_data7 << std::endl;*/
+	/*Eigen::Map<MatrixXR, 0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> >
+		svd_data2(test.col(0).data(), 4, 3,	Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data3(test.col(1).data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data4(test.col(2).data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data5(test.col(3).data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data6(test.col(4).data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0)),
+		svd_data7(test.col(5).data(), 4, 3, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(4 * 5, 0));
+	std::cout << svd_data2 << std::endl;
+	std::cout << svd_data3 << std::endl;
+	std::cout << svd_data4 << std::endl;
+	std::cout << svd_data5 << std::endl;
+	std::cout << svd_data6 << std::endl;
+	std::cout << svd_data7 << std::endl;*/
 
 
 

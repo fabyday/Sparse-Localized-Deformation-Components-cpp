@@ -6,8 +6,7 @@
 #include <string>
 #include <Eigen/Core>
 #include <igl/heat_geodesics.h>
-
-
+#include <igl/write_triangle_mesh.h>
 
 #define F_EPS 10e-6
 
@@ -68,6 +67,19 @@ private:
 	void precompute_local_support(const Mesh& t);
 	void scale_meshes();
 	void find_rbm_procrustes();
+
+#ifdef _DEBUG || DEBUG
+	inline void write_mesh_debug(std::string& category_name) {
+		for (int i = 0; i < meshes_.size(); i++)
+			igl::write_triangle_mesh(category_name + std::to_string(i)+".obj", meshes_[i].V, meshes_[i].F);
+	}
+#else 
+	inline void write_mesh_debug(std::string& category_name) {};
+#endif // DEBUG
+
+
+
+
 public:
 
 	void solve(	int component_num = 50, int num_iter_max = 10, int num_admm_iterations = 10,
