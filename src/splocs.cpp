@@ -13,44 +13,40 @@ SplocsSolver::SplocsSolver()
 {}
 
 void SplocsSolver::make_X_matrix_by_meshes_(){
+
+	typedef Eigen::Map<MatrixXR, 0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> DMap;
+
 	const int mesh_num = meshes_.size();
 	const int v_size = meshes_[0].V.rows();
 	matrix_X_->resize(mesh_num, 3 * v_size);
+	matrix_X_->setZero();
 	VectorXR mean_shape;
 	mean_shape.resize( matrix_X_->cols());
 	mean_shape.setZero();
-	std::for_each(meshes_.begin(), meshes_.end(), [&mean_shape, this, mesh_num, i = 0](Mesh& m) mutable {
-		auto x = Eigen::Map<MatrixXR>(m.V.data(), m.V.size(), 1);
+	std::for_each(meshes_.begin(), meshes_.end(), [&mean_shape, this,v_size, mesh_num, i = 0](Mesh& m) mutable {
+		Eigen::Map<MatrixXR> x(m.V.data(), m.V.size(), 1);
+		std::cout << Eigen::Map<MatrixXR>(m.V.data(), m.V.rows(), 3).block<4, 3>(0, 0) << std::endl << std::endl;
 		mean_shape += x / mesh_num;
 		matrix_X_->row(i++) = x.transpose();
-	}
-
-	);
+	});
 
 
 	// check page 4
 	// normalize part
-	matrix_X_->rowwise() -= mean_shape.transpose();
+ 	matrix_X_->rowwise() -= mean_shape.transpose();
+
 	meanshape_mesh_->V = std::move(Eigen::Map<MatrixXR>(mean_shape.data(), v_size, 3));
 	meanshape_mesh_->F = meshes_[0].F;
 
 
 	Eigen::Map<VectorXR> x_vec(matrix_X_->data(), matrix_X_->size());
 
-	std::cout << x_vec.array().block<5,1>(0,0).transpose() << std::endl << std::endl;
-	std::cout << (x_vec.mean()) << std::endl<<std::endl;
-	std::cout << (x_vec.array() - x_vec.mean()).block<5, 1>(0, 0).transpose() << std::endl<<std::endl;
-	std::cout << ( ( x_vec.array() - x_vec.mean()).square()).block<5, 1>(0, 0).transpose() << std::endl<<std::endl;
-	std::cout << ( ( x_vec.array() - x_vec.mean()).square().sum()) << std::endl<<std::endl;
-	std::cout << ( ( x_vec.array() - x_vec.mean()).square().sum())/x_vec.size() << std::endl << std::endl;
-	std::cout << ( ( x_vec.array() - x_vec.mean()).square().mean()) << std::endl << std::endl;
-	std::cout << x_vec.size() << std::endl << std::endl;
+
 	//std
 	scale_factor_ = sqrt((x_vec.array() - x_vec.mean()).square().sum() / (x_vec.size()));
-	std::cout << 1/ scale_factor_ << std::endl << std::endl;
-	*matrix_X_ /= scale_factor_;
+ 	*matrix_X_ /= scale_factor_;
 
-
+	 
 
 
 	////across vertices
@@ -111,7 +107,10 @@ void SplocsSolver::get_local_support(const int idx, MatrixXR& result, real_type 
 
 void SplocsSolver::precompute_local_support(const Mesh& m)
 {
+	//std::cout << m.V.block<4,3>(0, 0) << std::endl;
 	//real_type t = std::pow(igl::avg_edge_length(m.V, m.F), 2);
+	//std::cout << igl::avg_edge_length(m.V, m.F) << std::endl;
+
 	real_type t = 10*std::pow(igl::avg_edge_length(m.V, m.F), 2);
 	if (!igl::heat_geodesics_precompute(m.V, m.F, t, data_)) {
 		std::cerr << "Error: heat_geodesics_precompute failed." << std::endl;
@@ -127,11 +126,13 @@ void SplocsSolver::scale_meshes() {
 	real_type v_scale = 0;
 	for (int i = 0; i < meshes_.size(); i++) {
 		Mesh& m = meshes_[i];
-		mean_Vs += m.V / meshes_.size();
+		//mean_Vs += m.V / meshes_.size();
+		mean_Vs += m.V ;
 
 		real_type tmp_scale = (m.V.colwise().maxCoeff() - m.V.colwise().minCoeff()).cwiseAbs().maxCoeff();
 		v_scale = v_scale > tmp_scale ? v_scale : tmp_scale;
 	}
+	mean_Vs /= meshes_.size();
 	VectorXR mean_v = mean_Vs.colwise().mean();
 	for (int i = 0; i < meshes_.size(); i++) {
 		meshes_[i].V.array().rowwise() -= mean_v.transpose().array();
@@ -146,15 +147,15 @@ void SplocsSolver::find_rbm_procrustes()
 
 
 	Mesh& ref = meshes_[0];
-	VectorXR t0 = ref.V.colwise().mean();
-	MatrixXR frompts_local = ref.V.array().rowwise() - t0.transpose().array();
+	VectorXR t1  = ref.V.colwise().mean();
+	MatrixXR topts_local  = ref.V.array().rowwise() - t1.transpose().array();
 	for (int i = 0; i < meshes_.size(); i++) {
 		Mesh& m = meshes_[i];
-		VectorXR t1 = m.V.colwise().mean();
-		MatrixXR topts_local = m.V.array().rowwise() - t1.transpose().array();
+		VectorXR t0 = m.V.colwise().mean();
+		MatrixXR frompts_local = m.V.array().rowwise() - t0.transpose().array();
 
 		MatrixXR M = topts_local.transpose()* frompts_local;
-		Eigen::JacobiSVD<MatrixXR> svd(M.transpose(),
+		Eigen::JacobiSVD<MatrixXR> svd(M,
 			Eigen::ComputeThinU | Eigen::ComputeThinV);
 		MatrixXR U = svd.matrixU();
 		MatrixXR S = svd.singularValues().asDiagonal();//sigma 
@@ -166,7 +167,7 @@ void SplocsSolver::find_rbm_procrustes()
 		MatrixXR T0 = MatrixXR::Identity(4, 4);
 		T0.block<3, 3>(0, 0) = R;
 		T0.block<3, 1>(0, 3) = t1 - R*t0;
-		
+
 		MatrixXR m_tmp(m.V.rows(), 4); 
 		const int rows = m.V.rows();
 		m_tmp.block(0,0, rows, 3) = std::move(m.V);
@@ -308,17 +309,20 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 		vec magnitude(v_size);
 		magnitude.setZero();
 		for (int f = 0; f < frame_size; f++) {
-			Eigen::Map<Eigen::Matrix<real_type, -1,-1>, 0>
-				tmp(residual_X.row(f).data(),
-					v_size, 3);
-			//std::cout << tmp.row(0) << std::endl;
+			DMap tmp = get_X_Matrix_row_to_3dim(f);
+
+
+			//Eigen::Map<Eigen::Matrix<real_type, -1,-1>, 0>
+			//	tmp(residual_X.row(f).data(),
+			//		v_size, 3);
 			//std::cout <<  tmp(0,0)*tmp(0,0)<<" " << tmp(0, 1) * tmp(0, 1) << " " << tmp(0, 2) * tmp(0, 2) << std::endl;
 			//std::cout << tmp.rowwise().squaredNorm()(0) << std::endl;
 			magnitude += tmp.rowwise().squaredNorm();
 		}
 
 		int max_v_idx;
-		magnitude.maxCoeff(&max_v_idx);
+		real_type res = magnitude.maxCoeff(&max_v_idx);
+		std::cout << res;
 
 
 		/*
@@ -350,6 +354,7 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 
 		MatrixXR s = 1 - local_sup.array();
 
+
 		//MatrixXR ck = wk.transpose() * (residual_X);
 		MatrixXR ck = wk * (residual_X);
 
@@ -360,7 +365,6 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 		s.array()  /= (wk * (wk.transpose().eval()))(0, 0);
 		Eigen::Map<VectorXR> s_tmp(s.data(), s.size());
 		 ck_3= ck_3.array().colwise() *s_tmp.array();
-		 //std::cout << ck.maxCoeff() << std::endl;
 		//C.row(k) = ck;
 		//std::cout << ck.block<1, 10> (0,0) << std::endl;
 		C.row(k) = ck;
@@ -402,6 +406,8 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 			// block coordinate descent update
 			MatrixXR tmp;
 			outerProduct(tmp, W.col(k), Ck);
+			std::cout <<std::endl<< Ck.block(0, 0, 1, 4) <<std::endl<< std::endl;
+			std::cout << tmp.block(0, 0, 10, 4) <<std::endl;
 			Rflat += tmp;
 			MatrixXR opt = Rflat* Ck.transpose() / Ck_norm;
 			W.col(k) = proj(opt);
@@ -413,7 +419,8 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 		
 		for (int k = 0; k < C.rows(); k++) {
 			//Eigen::Block<MatrixXR, 1, -1, false> Ck = 
-			Eigen::Map<MatrixXR> Ck(C.row(k).data(), v_size, 3);
+			//Eigen::Map<MatrixXR> Ck(C.row(k).data(), v_size, 3);
+			DMap Ck = get_matrix_row_to_3dim(C, k);
 			int idx;
 			Ck.array().pow(2.0).matrix().rowwise().sum().maxCoeff(&idx);
 			MatrixXR support_map;
@@ -442,8 +449,10 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 		MatrixXR C_norm(C.rows(), static_cast<int>(C.cols() / 3));
 		//Eigen::Map<MatrixXR, 0, Eigen::Stride<1, 3>>   sss;
 		for (int i = 0; i < C.rows(); i++) {
-			Eigen::Map<Eigen::Matrix<real_type,-1,-1, Eigen::RowMajor>> tmp(C.row(i).data(), C.row(i).size() / 3, 3);
-			C_norm.row(i) = tmp.rowwise().norm();
+			//Eigen::Map<Eigen::Matrix<real_type,-1,-1, Eigen::RowMajor>> tmp(C.row(i).data(), C.row(i).size() / 3, 3);
+			//C_norm.row(i) = tmp.rowwise().norm();
+			DMap Ck =get_matrix_row_to_3dim(C, i);
+			C_norm.row(i) = Ck.rowwise().norm().transpose();
 		}
 
 		real_type sparsity = (Lambda.array() * C_norm.array()).sum();
@@ -492,4 +501,16 @@ std::vector<Mesh*> SplocsSolver::get_mesh_components()
 std::vector<Mesh*> SplocsSolver::get_weights_of_componets()
 {
 	return std::vector<Mesh*>();
+}
+
+inline DMap get_matrix_row_to_3dim(MatrixXR& mat, const int row_idx)
+{
+	const int total_rows = mat.rows();
+	const int v_size = mat.cols()/3;
+	assert(mat.cols() % 3 == 0 && " it's not 3 colums");
+	return DMap(mat.row(row_idx).data(),
+		v_size, 3,
+		Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>
+		((total_rows * v_size), total_rows)
+	);
 }

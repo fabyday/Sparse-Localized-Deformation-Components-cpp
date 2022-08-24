@@ -26,10 +26,25 @@ typedef
 }Mesh;
 
 
+
+typedef Eigen::Map<MatrixXR, 0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>> DMap;
+
+
+inline DMap get_matrix_row_to_3dim(MatrixXR& mat, const int row_idx);
+
+
+
 class SplocsSolver {
 private:
 	
 public :
+
+	
+	inline DMap get_X_Matrix_row_to_3dim(const int row_idx) {
+		return get_matrix_row_to_3dim(*matrix_X_, row_idx);
+	}
+
+
 	std::unique_ptr<Mesh> meanshape_mesh_;
 	std::vector<Mesh> meshes_;
 
