@@ -61,6 +61,7 @@ add_compile_definitions(
 	EXAMPLE_PATH="${EXAMPLE_PATH}/"
 	face205="${EXAMPLE_PATH}/face-poses/"
 	navitan="${EXAMPLE_PATH}/lowpoly/cat/animation/"
+	big_face="${EXAMPLE_PATH}/big-face/"
 )
 
 add_library(splocs ${cpp_files} "src/splocs.h" "src/splocs.cpp")

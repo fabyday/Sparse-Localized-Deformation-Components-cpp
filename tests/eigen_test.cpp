@@ -2,13 +2,25 @@
 
 
 #include <iostream>
+using namespace Eigen;
+typedef Eigen::Matrix<int, -1, -1, Eigen::RowMajor> ROWMAT;
+typedef Eigen::Matrix<int, -1, -1, Eigen::ColMajor> COLMAT;
+typedef Eigen::Matrix<int, -1, -1> MatrixXR;
+
+static void functions(MatrixXR& result, const MatrixXR& t1,  const MatrixXR& t2) {
+
+	// t1, t2 col-vector
+	// 
+	//result;
+	Eigen::Map<MatrixXR> t1v(const_cast<int*>(t1.data()), t1.size(), 1);
+	Eigen::Map<MatrixXR> t2v(const_cast<int*>(t2.data()), t2.size(), 1);
+	result = t1v * t2v.transpose();
+}
 
 
 
 int main() {
-	using namespace Eigen;
-	typedef Eigen::Matrix<int, -1, -1, Eigen::RowMajor> ROWMAT;
-	typedef Eigen::Matrix<int, -1, -1, Eigen::ColMajor> COLMAT;
+
 	std::vector<int> s{ 1,2,3,4,5,6,7,8,9 };
 	std::vector<int> ss{ 1,2,3, 1,2,3, 1,2,3, 1,2,3 };
 	COLMAT t(2,6); 
@@ -82,6 +94,16 @@ int main() {
 	std::cout << svd_data6 << std::endl;
 	std::cout << svd_data7 << std::endl;*/
 
+	MatrixXR s1, s2, s3;
+	s1.resize(1, 3);
+	s2.resize(1, 3);
+	s1 << 2, 3, 4;
+	s2 << 1, 2, 3;
 
-
+	Eigen::Map<MatrixXR> t1v((s1.data()), s1.size(), 1);
+	Eigen::Map<MatrixXR> t2v((s2.data()), s2.size(), 1);
+	s3 = t1v * t2v.transpose();
+	std::cout << s1 << std::endl;
+	std::cout << s2 << std::endl;
+	std::cout << s3;
 }
