@@ -23,6 +23,10 @@ typedef
 	Mesh() {}
 	Mesh(MatrixXR& verts, MatrixXI& faces)
 		: V(std::move(verts)), F(std::move(faces)) {}
+
+	void save_as(std::string& name) {
+		igl::write_triangle_mesh(name, V, F);
+	}
 }Mesh;
 
 
@@ -37,13 +41,11 @@ inline DMap get_matrix_row_to_3dim(MatrixXR& mat, const int row_idx);
 class SplocsSolver {
 private:
 	
-public :
 
-	
-	inline DMap get_X_Matrix_row_to_3dim(const int row_idx) {
-		return get_matrix_row_to_3dim(*matrix_X_, row_idx);
-	}
-
+	//inline DMap get_X_Matrix_row_to_3dim(const int row_idx) {
+	//	return get_matrix_row_to_3dim(*matrix_X_, row_idx);
+	//}
+	bool verbose_;
 
 	std::unique_ptr<Mesh> meanshape_mesh_;
 	std::vector<Mesh> meshes_;
@@ -56,7 +58,6 @@ public :
 	int num_opt_ = 10;
 	int num_admm_iterations_;
 	real_type scale_factor_;
-	SplocsSolver();
 
 	std::unique_ptr<MatrixXR> matrix_X_;
 	std::unique_ptr<MatrixXR> matrix_W_;
@@ -96,6 +97,8 @@ private:
 
 
 public:
+	SplocsSolver();
+	void set_info_level(bool verbose);
 
 	void solve(	int component_num = 50, int num_iter_max = 10, int num_admm_iterations = 10,
 				real_type d_min = 0.1, real_type d_max = 0.7, 
@@ -111,7 +114,7 @@ public:
 	void add_triangle_meshes(std::vector<std::string>& names);
 
 	Mesh* get_mesh_component();
-	std::vector<Mesh*> get_mesh_components();
+	std::vector<Mesh> get_mesh_components();
 	std::vector<Mesh*> get_weights_of_componets();
 
 };

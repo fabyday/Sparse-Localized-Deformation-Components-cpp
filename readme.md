@@ -10,6 +10,10 @@ Simply Run
 ```
 
 
+and open solution, run "face_test project".(In Window)
+in other OS, run... MOL-LU. thanks.
+
+
 # Dataset
 head pose In My example.
 3 files is different vertex index layout and topology. Do Not Use it.
@@ -22,9 +26,4 @@ It'll break your time.
 ```
 
 # __SPARSE SPARSE__
-
-
-
-�̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷�
-�̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷�
-�̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷��̷�
+PIU

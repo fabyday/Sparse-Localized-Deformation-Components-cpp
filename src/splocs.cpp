@@ -25,7 +25,7 @@ SplocsSolver::SplocsSolver()
 	matrix_X_(std::make_unique<MatrixXR>()),
 	matrix_C_(std::make_unique<MatrixXR>()), 
 	meanshape_mesh_(std::make_unique<Mesh>()), 
-	d_min_(0.0), d_max_(1.0)
+	d_min_(0.0), d_max_(1.0), verbose_(false)
 {}
 
 void SplocsSolver::make_X_matrix_by_meshes_(){
@@ -53,20 +53,12 @@ void SplocsSolver::make_X_matrix_by_meshes_(){
 
 	// check page 4
 	// normalize part
-
-
  	matrix_X_->rowwise() -= mean_shape.transpose();
-
-	for (int i = 0; i < matrix_X_->rows(); i++) {
-		std::cout << matrix_X_->row(i).mean() << std::endl;;
-	}
-
 
 	meanshape_mesh_->V = std::move(Eigen::Map<MatrixXR>(mean_shape.data(), v_size, 3));
 	meanshape_mesh_->F = meshes_[0].F;
 
 	Eigen::Map<VectorXR> x_vec(matrix_X_->data(), matrix_X_->size());
-
 
 	//std
 	scale_factor_ = sqrt((x_vec.array() - x_vec.mean()).square().sum() / (x_vec.size()));
@@ -270,10 +262,12 @@ void SplocsSolver::find_rbm_procrustes()
 	}
 }
 
+void SplocsSolver::set_info_level(bool verbose) {
+	verbose_ = verbose;
+}
 
 
-
-void SplocsSolver::solve(int component_num , int num_iter_max, int num_admm_iterations,
+void SplocsSolver::solve(int component_num, int num_iter_max, int num_admm_iterations,
 						real_type d_min, real_type d_max,
 						real_type sparsity_lambda, real_type rho)
 {
@@ -484,24 +478,28 @@ void SplocsSolver::phase1(MatrixXR& C, MatrixXR& W){
 			DMap Ck =get_matrix_row_to_3dim(C, k);
 			C_norm.row(k) = Ck.rowwise().norm().transpose();
 		}
-		real_type sparsity = (Lambda.array() * C_norm.array()).sum();
-		real_type e = (residual_X.array().pow(2.0).sum() + sparsity);
-		std::cout <<"=====" << i <<"=====" << std::endl;
-		std::cout << "energy : " << e << std::endl;
+
+
+		if(verbose_){
+			real_type sparsity = (Lambda.array() * C_norm.array()).sum();
+			real_type e = (residual_X.array().pow(2.0).sum() + sparsity);
+			std::cout <<"=====" << i <<"=====" << std::endl;
+			std::cout << "energy : " << e << std::endl;
+		}
 
 	}
-	// undo scaling
-	C *= scale_factor_;
-	std::cout << "save ..." << std::endl;
-	for (int i = 0; i < C.rows(); i++) {
-		Mesh tt; 
-		tt.V = get_matrix_row_to_3dim(C, i) + meanshape_mesh_->V;
-		//tt.V = Eigen::Map<Eigen::Matrix<real_type, -1,-1, Eigen::RowMajor>>(C.row(i).data(), C.row(0).size()/3, 3) + meanshape_mesh_->V;
-		tt.F = meanshape_mesh_->F;
-		igl::write_triangle_mesh("component_"+std::to_string(i) + ".obj", tt.V, tt.F);
-		std::cout << i << " saved..." << std::endl;
+	//// undo scaling
+	//C *= scale_factor_;
+	//std::cout << "save ..." << std::endl;
+	//for (int i = 0; i < C.rows(); i++) {
+	//	Mesh tt; 
+	//	tt.V = get_matrix_row_to_3dim(C, i) + meanshape_mesh_->V;
+	//	//tt.V = Eigen::Map<Eigen::Matrix<real_type, -1,-1, Eigen::RowMajor>>(C.row(i).data(), C.row(0).size()/3, 3) + meanshape_mesh_->V;
+	//	tt.F = meanshape_mesh_->F;
+	//	igl::write_triangle_mesh("component_"+std::to_string(i) + ".obj", tt.V, tt.F);
+	//	std::cout << i << " saved..." << std::endl;
 
-	}
+	//}
 
 }
 
@@ -526,9 +524,19 @@ Mesh* SplocsSolver::get_mesh_component()
 	return nullptr;
 }
 
-std::vector<Mesh*> SplocsSolver::get_mesh_components()
+std::vector<Mesh> SplocsSolver::get_mesh_components()
 {
-	return std::vector<Mesh*>();
+	const int size = matrix_C_->rows();
+	//assert(component_num_ != size && "re compile is needed, error baby.yeah-a");
+	std::vector<Mesh> components;
+	components.reserve(size);
+	for (int i = 0; i < size; i++) {
+		MatrixXR&& V = get_matrix_row_to_3dim(*matrix_C_, i) * scale_factor_ + meanshape_mesh_->V;
+		MatrixXI F = meanshape_mesh_->F;
+		components.emplace_back(V, F);
+	}
+		
+	return components;
 }
 
 std::vector<Mesh*> SplocsSolver::get_weights_of_componets()
