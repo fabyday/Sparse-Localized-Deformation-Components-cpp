@@ -1,6 +1,5 @@
 #include <Eigen/Core>
 
-
 #include <iostream>
 using namespace Eigen;
 typedef Eigen::Matrix<int, -1, -1, Eigen::RowMajor> ROWMAT;

@@ -64,6 +64,21 @@ add_compile_definitions(
 	big_face="${EXAMPLE_PATH}/big-face/"
 )
 
+# set(CGAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/ThirdParty/CGAL-5.5")
+# set(CGAL_DIR "${CMAKE_BINARY_DIR}/CGAL")
+# add_subdirectory("ThirdParty/CGAL-5.5") 
+
+
+
+#include ("${CMAKE_SOURCE_DIR}/ThirdParty/CGAL-5.5/lib/cmake/CGAL/CGALConfig.cmake")
+#link_libraries(${CGAL_LIBRARIES})
+#message(${CGAL_LIBRARIES})
+#message(${CGAL_INCLUDE_DIRS})
+#include_directories(${CGAL_INCLUDE_DIRS})
+
+
+
+
 add_library(splocs ${cpp_files} "src/splocs.h" "src/splocs.cpp")
 target_include_directories(splocs PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(splocs igl::core igl::opengl_glfw igl::opengl_glfw_imgui)
